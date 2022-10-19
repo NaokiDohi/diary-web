@@ -11,7 +11,13 @@
   "dependencies": {
     "next": "12.3.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "stripe": "^10.14.0",
+    "@stripe/stripe-js": "^1.42.0",
+    "@stripe/react-stripe-js": "^1.13.0",
+    "cors": "^2.8.5",
+    "nookies": "^2.5.2",
+    "firebase": "^9.12.1"
   },
   "devDependencies": {
     "@types/node": "18.11.2",
