@@ -7,7 +7,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const prices = await stripe.prices.list({
-    lookup_key: [
+    lookup_keys: [
       'monthly_membership_standard',
       'yearly_membership_standard',
       'monthly_membership_premium',
