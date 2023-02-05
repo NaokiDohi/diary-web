@@ -4,9 +4,9 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { getAuth, signOut } from 'firebase/auth'
-import { AuthContext } from '../../assets/auth'
+import { AuthContext } from '../../context/index'
 import { classNames } from '../../assets/classOperation'
-import type { User } from 'firebase/auth'
+import type { AuthContextType } from '../../context/index'
 
 const Avatar = dynamic(() => import('../Avatar'))
 
@@ -24,11 +24,13 @@ const LoginNavLink = ({
   isLogout: boolean
 }) => {
   const router = useRouter()
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const logout = () => {
     if (isLogout) {
       const auth = getAuth()
       signOut(auth)
         .then(() => {
+          setState({ user: { loggedInUser: null } })
           router.reload()
         })
         .catch((error) => {
@@ -63,13 +65,14 @@ const navList = [
 ]
 
 const LoggedInMenu = () => {
-  const loggedInUser = useContext<User | null>(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const [avatarUrl, setAvatarUrl] = useState<string>(
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
   )
   useEffect(() => {
-    if (loggedInUser?.photoURL) setAvatarUrl(loggedInUser.photoURL)
-  }, [loggedInUser])
+    if (state.user.loggedInUser?.photoURL)
+      setAvatarUrl(state.user.loggedInUser.photoURL)
+  }, [state.user.loggedInUser])
 
   return (
     <Menu as='div' className='relative ml-3'>

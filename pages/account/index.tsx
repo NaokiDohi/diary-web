@@ -2,29 +2,27 @@ import { useRouter } from 'next/router'
 import { useState, useEffect, useContext } from 'react'
 import axios from 'axios'
 import moment from 'moment'
-import { AuthContext } from '../../assets/auth'
+import { AuthContext } from '../../context/index'
 import type { StripeSubscription } from '../../types/stripe/subscription'
-import type { User } from 'firebase/auth'
-import type Stripe from 'stripe'
+import type { AuthContextType } from '../../context/index'
 
 const Account = () => {
   const router = useRouter()
-  const loggedInUser = useContext<User | null>(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [subscriptions, setSubscriptions] = useState([])
 
   useEffect(() => {
-    if (loggedInUser) setIsLoggedIn(true)
-  }, [loggedInUser])
-
-  useEffect(() => {
-    const getSubscriptions = async () => {
-      const { data } = await axios.get('/api/subscriptions/list')
-      //   console.log("Subs =>", data);
-      setSubscriptions(data.data)
+    if (!state.user.loggedInUser) router.replace('/')
+    else if (state.user.loggedInUser) {
+      const getSubscriptions = async () => {
+        const { data } = await axios.get('/api/subscriptions/list')
+        //   console.log("Subs =>", data);
+        setSubscriptions(data.data)
+      }
+      getSubscriptions()
     }
-    if (isLoggedIn) getSubscriptions()
-  }, [isLoggedIn])
+  }, [state.user.loggedInUser])
 
   const manageSubscriptions = async () => {
     const { data } = await axios.get('/api/subscriptions/portal')

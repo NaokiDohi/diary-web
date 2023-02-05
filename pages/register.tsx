@@ -4,12 +4,12 @@ import { useRouter } from 'next/router'
 import { Form, FormGroup, Button, Title } from '@adiranids/react-tailwind'
 import '@adiranids/react-tailwind/dist/style.css'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { AuthContext } from '../assets/auth'
+import { AuthContext } from '../context/index'
 import validate from '../assets/validation'
 import { addNewWithDocId } from '../assets/firebaseClientHelpers'
 import GuestLayout from '../layouts/GuestLayout'
-import type { User } from 'firebase/auth'
 import type { NextPageWithLayout } from './_app'
+import type { AuthContextType } from '../context/index'
 
 const Register: NextPageWithLayout = () => {
   const [name, setName] = useState<string>('')
@@ -20,13 +20,13 @@ const Register: NextPageWithLayout = () => {
   const [errorEmail, setErrorEmail] = useState<string>('')
   const [errorPassword, setErrorPassword] = useState<string>('')
 
-  const loggedInUser = useContext<User | null>(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const router = useRouter()
 
   useEffect(() => {
-    // console.log(loggedInUser)
-    if (loggedInUser) router.replace('/')
-  }, [loggedInUser])
+    // console.log(state.user.loggedInUser)
+    if (state.user.loggedInUser) router.replace('/')
+  }, [state.user.loggedInUser])
 
   const handleRegistration = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()

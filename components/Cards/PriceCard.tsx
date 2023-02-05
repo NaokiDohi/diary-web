@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import Stripe from 'stripe'
-// import { AuthContext } from '../../assets/auth'
-import { UserContext } from '../../context'
+import { AuthContext } from '../../context/index'
+import type { AuthContextType } from '../../context/index'
 
 type PriceCard = {
   price: Stripe.Price
@@ -14,8 +14,7 @@ const PriceCard = ({
   handleSubscription,
   userSubscriptions,
 }: PriceCard) => {
-  const state = useContext(UserContext)
-  // const state = useContext(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
 
   const dynamicDescription = () => {
     if (price.nickname === 'BASIC') {
@@ -40,7 +39,7 @@ const PriceCard = ({
   }
 
   const buttonText = () => {
-    return state && state.token ? 'Buy the plan' : 'Sign Up'
+    return state.user.loggedInUser ? 'Buy the plan' : 'Sign Up'
   }
 
   return (
