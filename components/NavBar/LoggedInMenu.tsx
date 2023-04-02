@@ -30,7 +30,13 @@ const LoginNavLink = ({
       const auth = getAuth()
       signOut(auth)
         .then(() => {
-          setState({ user: { loggedInUser: null } })
+          setState({
+            user: {
+              loggedInUser: null,
+              stripe_customer_id: null,
+              subscriptions: [],
+            },
+          })
           router.reload()
         })
         .catch((error) => {

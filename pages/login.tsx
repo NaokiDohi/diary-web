@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import axios from 'axios'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { Form, FormGroup, Button, Title } from '@adiranids/react-tailwind'
 import '@adiranids/react-tailwind/dist/style.css'
@@ -8,7 +9,7 @@ import { AuthContext } from '../context/index'
 import validate from '../assets/validation'
 import GuestLayout from '../layouts/GuestLayout'
 import type { NextPageWithLayout } from './_app'
-import type { AuthContextType } from '../context/index'
+import type { AuthContextType, AuthStateType } from '../context/index'
 
 const Login: NextPageWithLayout = () => {
   const [email, setEmail] = useState<string>('')
@@ -39,8 +40,27 @@ const Login: NextPageWithLayout = () => {
     }
 
     signInWithEmailAndPassword(auth, email, password)
-      .then((user) => {
+      .then(async (user) => {
+        const customer = await axios.get('api/customer/list', {
+          params: {
+            email: email,
+          },
+        })
+        console.log('firebase user:', user.user)
+        console.log('stripe user:', customer.data[0].id)
+        setState((oldState: AuthStateType) => ({
+          ...oldState,
+          user: {
+            ...oldState.user,
+            loggedInUser: user.user,
+            stripe_customer_id: customer.data[0].id,
+          },
+        }))
         console.log('Success!!')
+        // console.log(state)
+        ///
+        // After that, we need to fix error handling about stripe user
+        ///
         // console.log(user)
       })
       .catch((error) => {
@@ -57,6 +77,7 @@ const Login: NextPageWithLayout = () => {
     setErrorEmail(emailError)
     setErrorPassword(passwordError)
   }
+  console.log(state)
   return (
     <div className='grid place-items-center mt-32'>
       <Head>

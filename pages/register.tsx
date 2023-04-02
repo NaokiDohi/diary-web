@@ -4,7 +4,8 @@ import { useRouter } from 'next/router'
 import { Form, FormGroup, Button, Title } from '@adiranids/react-tailwind'
 import '@adiranids/react-tailwind/dist/style.css'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { AuthContext } from '../context/index'
+import { AuthContext, AuthStateType } from '../context/index'
+import axios from 'axios'
 import validate from '../assets/validation'
 import { addNewWithDocId } from '../assets/firebaseClientHelpers'
 import GuestLayout from '../layouts/GuestLayout'
@@ -46,8 +47,30 @@ const Register: NextPageWithLayout = () => {
 
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (user) => {
-        const docRef = addNewWithDocId('users', user.user.uid, { name: name })
+        const customer = await axios.post('api/customer/create', {
+          email: email,
+        })
+        console.log('Customer was created', customer)
+        const docRef = addNewWithDocId('users', user.user.uid, {
+          name: name,
+          email: email,
+          password: password,
+          stripe_customer_id: customer.data.id,
+          subscriptions: [],
+        })
         // console.log(user)
+        setState((oldState: AuthStateType) => ({
+          ...oldState,
+          user: {
+            ...oldState.user,
+            loggedInUser: user.user,
+            stripe_customer_id: customer.data.id,
+          },
+        }))
+        console.log(state)
+        ///
+        // After that, we need to fix error handling about stripe user
+        ///
       })
       .catch((error) => {
         // console.log('error', error.code)

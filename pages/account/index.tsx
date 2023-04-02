@@ -16,7 +16,11 @@ const Account = () => {
     if (!state.user.loggedInUser) router.replace('/')
     else if (state.user.loggedInUser) {
       const getSubscriptions = async () => {
-        const { data } = await axios.get('/api/subscriptions/list')
+        const { data } = await axios.get('/api/subscriptions/list', {
+          params: {
+            stripe_customer_id: state.user.stripe_customer_id,
+          },
+        })
         //   console.log("Subs =>", data);
         setSubscriptions(data.data)
       }
@@ -25,7 +29,11 @@ const Account = () => {
   }, [state.user.loggedInUser])
 
   const manageSubscriptions = async () => {
-    const { data } = await axios.get('/api/subscriptions/portal')
+    const { data } = await axios.get('/api/subscriptions/portal', {
+      params: {
+        stripe_customer_id: state.user.stripe_customer_id,
+      },
+    })
     window.open(data, '_self')
   }
 

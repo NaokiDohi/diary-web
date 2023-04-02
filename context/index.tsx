@@ -13,9 +13,11 @@ type Props = {
   children: React.ReactNode
 }
 
-type AuthStateType = {
+export type AuthStateType = {
   user: {
     loggedInUser: User | null
+    stripe_customer_id: string | null
+    subscriptions: string[]
   }
 }
 
@@ -25,14 +27,14 @@ export type AuthContextType = [
 ]
 
 const defaultValue: AuthContextType = [
-  { user: { loggedInUser: null } },
+  { user: { loggedInUser: null, stripe_customer_id: null, subscriptions: [] } },
   () => {},
 ]
 const AuthContext = createContext<AuthContextType>(defaultValue)
 
 const AuthProvider = ({ children }: Props) => {
   const [state, setState] = useState<AuthStateType>({
-    user: { loggedInUser: null },
+    user: { loggedInUser: null, stripe_customer_id: null, subscriptions: [] },
   })
 
   useEffect(() => {
@@ -41,9 +43,13 @@ const AuthProvider = ({ children }: Props) => {
         loggedInUser
           .getIdToken()
           .then((token) => nookies.set(undefined, 'token', token, {}))
-        setState({
-          user: { loggedInUser: loggedInUser },
-        })
+        setState((oldState: AuthStateType) => ({
+          ...oldState,
+          user: {
+            ...oldState.user,
+            loggedInUser: loggedInUser,
+          },
+        }))
       }
     })
   }, [])

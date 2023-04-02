@@ -7,9 +7,9 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    // const user = await User.findById(req.user._id)
+    const customer_id = req.query.stripe_customer_id as string
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripe_customer_id,
+      customer: customer_id,
       return_url: process.env.STRIPE_SUCCESS_URL,
     })
     res.json(portalSession.url)

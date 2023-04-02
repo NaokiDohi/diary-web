@@ -17,22 +17,23 @@ export default async function handler(
 ) {
   if (req.method === 'POST') {
     try {
-      //   const user = await User.findById(req.user._id)
+      const price = req.body.priceId
+      const customer = req.body.stripe_customer_id
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         payment_method_types: ['card'],
         line_items: [
           {
-            price: req.body.priceId,
+            price: price,
             quantity: 1,
           },
         ],
-        // customer: user.stripe_customer_id,
+        customer: customer,
         success_url: process.env.STRIPE_SUCCESS_URL,
         cancel_url: process.env.STRIPE_CANCEL_URL,
       })
-      // console.log("Checkout session =>", session);
-      res.redirect(303, session.url)
+      // console.log('Checkout session =>', session)
+      res.json(session.url)
     } catch (err: any) {
       console.log(err)
       res.status(err.statusCode || 500).json({ error: err.message })

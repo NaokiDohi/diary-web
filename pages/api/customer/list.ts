@@ -7,13 +7,10 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    const customer_id = req.query.stripe_customer_id as string
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer_id,
-      status: 'all',
-      expand: ['data.default_payment_method'],
+    const customers = await stripe.customers.list({
+      email: req.query.email,
     })
-    res.json(subscriptions)
+    res.json(customers.data)
   } catch (err) {
     console.log(err)
   }
