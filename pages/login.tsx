@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import axios from 'axios'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { Form, FormGroup, Button, Title } from '@adiranids/react-tailwind'
+import { setCookie } from 'nookies'
 import '@adiranids/react-tailwind/dist/style.css'
 import { AuthContext } from '../context/index'
 import validate from '../assets/validation'
@@ -56,6 +57,10 @@ const Login: NextPageWithLayout = () => {
             stripe_customer_id: customer.data[0].id,
           },
         }))
+
+        const token = await user.user.getIdToken()
+        setCookie(undefined, 'token', token)
+        setCookie(undefined, 'stripe_customer_id', customer.data[0].id)
         console.log('Success!!')
         // console.log(state)
         ///
