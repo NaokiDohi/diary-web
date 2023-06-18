@@ -4,9 +4,15 @@ import {
   AlertIcon,
   AlertTitle,
 } from '@chakra-ui/react'
-import React from 'react'
+import router from 'next/router'
+import React, { useEffect } from 'react'
 
 const PaymentCancel = () => {
+  useEffect(() => {
+    setTimeout(() => {
+      router.push('/')
+    }, 3000)
+  }, [])
   return (
     <Alert
       status='error'
