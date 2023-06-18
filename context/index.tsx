@@ -5,9 +5,10 @@ import {
   SetStateAction,
   useEffect,
 } from 'react'
-import nookies from 'nookies'
+import nookies, { parseCookies } from 'nookies'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import type { User } from 'firebase/auth'
+import { getSingleDoc } from '../assets/firebaseClientHelpers'
 
 type Props = {
   children: React.ReactNode
@@ -43,16 +44,34 @@ const AuthProvider = ({ children }: Props) => {
         loggedInUser
           .getIdToken()
           .then((token) => nookies.set(undefined, 'token', token, {}))
+
+        const cookies = parseCookies()
+        console.log('%o', cookies)
+        console.log(`${cookies.stripe_customer_id}`)
+        const userInfo = getSingleDoc('user', loggedInUser.uid)
+        console.log(userInfo)
+
         setState((oldState: AuthStateType) => ({
           ...oldState,
           user: {
             ...oldState.user,
             loggedInUser: loggedInUser,
+            stripe_customer_id: cookies.stripe_customer_id,
+            subscriptions: [],
           },
         }))
       }
     })
-  }, [])
+  }, [
+    state.user.loggedInUser,
+    state.user.stripe_customer_id,
+    state.user.subscriptions,
+  ])
+
+  // axios config
+  // const token = state && state.token ? state.token : ''
+  // axios.defaults.baseURL = process.env.REACT_APP_API_URL
+  // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
   return (
     <AuthContext.Provider value={[state, setState]}>
