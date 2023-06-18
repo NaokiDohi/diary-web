@@ -29,16 +29,21 @@ const PaymentSuccess = () => {
         router.push('/landing')
       } else {
         // update user in Cookie
-        nookies.set(undefined, 'user', data, {})
+
+        const subscriptions = JSON.stringify(data.subscriptions)
+        nookies.set(undefined, 'subscriptions', subscriptions, {})
+
         // update user in context
-        setState(data)
         setState((oldState: AuthStateType) => ({
           ...oldState,
-          data,
+          user: {
+            ...oldState.user,
+            // subscriptions: subscriptions,
+          },
         }))
         setTimeout(() => {
           router.push('/')
-        }, 1000)
+        }, 3000)
       }
     }
     getSubscriptionStatus()
