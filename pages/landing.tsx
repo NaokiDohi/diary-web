@@ -15,6 +15,7 @@ import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
 import type { AuthContextType } from '../context/index'
 import type { StripeSubscription } from '../types/stripe/subscription'
+import { parseCookies } from 'nookies'
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
@@ -55,41 +56,54 @@ const Home: NextPageWithLayout = () => {
     }
   }
 
-  const getSubscriptions = async () => {
-    const { data } = await axios.get('/api/subscriptions/list', {
-      params: {
-        stripe_customer_id: state.user.stripe_customer_id,
-      },
-    })
-    //   console.log("Subs =>", data);
-    setUserSubscriptions(data.data.subscriptions)
-    setState({
-      ...state,
-      user: {
-        ...state.user,
-        loggedInUser: null,
-        stripe_customer_id: null,
-        subscriptions: userSubscriptions,
-      },
-    })
-    console.log(state)
-  }
+  useEffect(() => {
+    const getSubscriptions = async () => {
+      console.log(`get subs : ${state.user.stripe_customer_id}`)
+      const cookies = parseCookies()
+      console.log(`get sub:${cookies.stripe_customer_id}`)
+      console.log(`get sub:${cookies.token}`)
+      if (
+        typeof cookies.token == undefined ||
+        typeof cookies.stripe_customer_id == undefined
+      ) {
+        console.log('hogegegegegege1')
+        return null
+      } else {
+        const { data } = await axios.get('/api/subscriptions/list', {
+          params: {
+            stripe_customer_id: cookies.stripe_customer_id,
+          },
+        })
+        console.log('Subs =>', data.data)
+        setUserSubscriptions(data.data)
+        setState({
+          ...state,
+          user: {
+            ...state.user,
+            stripe_customer_id: cookies.stripe_customer_id,
+            subscriptions: userSubscriptions,
+          },
+        })
+        console.log('hogegegegegege2')
+        console.log(state)
+      }
+      getSubscriptions()
+      // console.log(userSubscriptions)
+    }
+  }, [])
 
   useEffect(() => {
-    getSubscriptions()
-    console.log(userSubscriptions)
-  }, [state.user.subscriptions])
-
-  useEffect(() => {
-    console.log(state)
+    console.log(`state hogehoge: ${state.user.loggedInUser?.email}`)
     if (state.user.loggedInUser) {
       setIsLoggedIn(true)
       if (userSubscriptions.length != 0) {
+        console.log(`user subscription: ${userSubscriptions.length}`)
         router.push('/')
       } else {
         fetchPrices()
       }
     } else {
+      // router.push('/')
       fetchPrices()
     }
   }, [state.user.loggedInUser])

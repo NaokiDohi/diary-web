@@ -25,7 +25,7 @@ const Home: NextPageWithLayout = () => {
   }
   const router = useRouter()
   const [state, setState] = useContext<AuthContextType>(AuthContext)
-  const [prices, setPrices] = useState([])
+  const [prices, setPrices] = useState<Stripe.Price[]>([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
@@ -39,43 +39,73 @@ const Home: NextPageWithLayout = () => {
     setPrices(data)
   }
 
-  const getSubscriptions = async () => {
-    const { data } = await axios.get('/api/subscriptions/list', {
-      params: {
-        stripe_customer_id: state.user.stripe_customer_id,
-      },
-    })
-    //   console.log("Subs =>", data);
-    setUserSubscriptions(data.data.subscriptions)
-    setState({
-      ...state,
-      user: {
-        ...state.user,
-        loggedInUser: null,
-        stripe_customer_id: null,
-        subscriptions: userSubscriptions,
-      },
-    })
-    console.log(state)
-  }
-
-  useEffect(() => {
-    getSubscriptions()
-    console.log(userSubscriptions)
-  }, [state.user.subscriptions])
-
-  useEffect(() => {
-    console.log(state)
+  const handleClick = async (
+    e: React.MouseEvent<HTMLElement, MouseEvent>,
+    price: Stripe.Price
+  ) => {
+    e.preventDefault()
+    if (userSubscriptions && userSubscriptions.includes(price.id)) {
+      router.push(`/${price.nickname?.toLowerCase()}`)
+      return
+    }
+    // console.log('Plan was clicked. price_id is', price.id)
     if (state.user.loggedInUser) {
+      console.log(state.user.stripe_customer_id)
+      const { data } = await axios.post('api/checkout/create', {
+        priceId: price.id,
+        stripe_customer_id: state.user.stripe_customer_id,
+      })
+      // console.log('Subscription was created', data)
+      window.open(data, '_self')
+    } else {
+      router.push('/register')
+    }
+  }
+  // useEffect(() => {
+  //   console.log(`state subscription:\n${state.user.stripe_customer_id}`)
+  //   if (state.user.stripe_customer_id == null) {
+  //     fetchPrices()
+  //     return
+  //   }
+  //   const getSubscriptions = async () => {
+  //     const { data } = await axios.get('/api/subscriptions/list', {
+  //       params: {
+  //         stripe_customer_id: state.user.stripe_customer_id,
+  //       },
+  //     })
+  //     console.log(data.data)
+  //     setUserSubscriptions(data.data)
+  //     console.log(`state set subscription:\n${state}`)
+  //     setState({
+  //       ...state,
+  //       user: {
+  //         ...state.user,
+  //         // loggedInUser: null,
+  //         // stripe_customer_id: null,
+  //         subscriptions: userSubscriptions,
+  //       },
+  //     })
+  //     console.log(state)
+  //   }
+  //   getSubscriptions()
+  // }, [state.user.subscriptions])
+
+  useEffect(() => {
+    console.log(`state check login and stripe:\n${state.user.loggedInUser}`)
+    console.log(
+      `state check login and stripe:\n${state.user.stripe_customer_id}`
+    )
+    console.log(`state check login and stripe:\n${state.user.subscriptions}`)
+    if (state.user.loggedInUser) {
+      console.log('hoge')
       setIsLoggedIn(true)
-      if (userSubscriptions.length != 0) {
+      if (state.user.stripe_customer_id && userSubscriptions.length != 0) {
         setIsSubscribed(true)
       } else {
         router.push('/landing')
-        // fetchPrices()
       }
     } else {
-      // fetchPrices()
+      router.push('/landing')
     }
   }, [state.user.loggedInUser, userSubscriptions])
 
@@ -132,7 +162,35 @@ const Home: NextPageWithLayout = () => {
                   </ul>
                 </Box>
               </div>
-            ) : null}
+            ) : (
+              <div>
+                <Center>
+                  <VStack>
+                    <Heading as='h2' fontSize='20px'>
+                      This is for Guest User
+                    </Heading>
+                    <Heading as='h3' fontSize='20px'>
+                      Chose your Plan
+                    </Heading>
+                  </VStack>
+                </Center>
+                <Center>
+                  <Box overflowY='auto' maxWidth='800px' maxHeight='500px'>
+                    <HStack>
+                      {prices &&
+                        prices.map((price: Stripe.Price) => (
+                          <PriceCard
+                            key={price.id}
+                            price={price}
+                            handleSubscription={handleClick}
+                            userSubscriptions={userSubscriptions}
+                          />
+                        ))}
+                    </HStack>
+                  </Box>
+                </Center>
+              </div>
+            )}
           </VStack>
         </div>
         <Spacer />
