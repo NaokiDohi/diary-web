@@ -3,6 +3,7 @@ import { Menu, Transition } from '@headlessui/react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
+import { destroyCookie } from 'nookies'
 import { getAuth, signOut } from 'firebase/auth'
 import { AuthContext } from '../../context/index'
 import { classNames } from '../../assets/classOperation'
@@ -37,6 +38,9 @@ const LoginNavLink = ({
               subscriptions: [],
             },
           })
+          destroyCookie(undefined, 'token')
+          destroyCookie(undefined, 'stripe_customer_id')
+          destroyCookie(undefined, 'subscriptions')
           router.reload()
         })
         .catch((error) => {
