@@ -15,3 +15,7 @@ export type StripeSubscription = {
   }
   status: string
 }
+
+export interface StripeSubscriptionStatus {
+  [index: string]: string
+}
