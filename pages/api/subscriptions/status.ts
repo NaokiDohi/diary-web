@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import admin from 'firebase-admin'
-import { getFirestore } from 'firebase-admin/firestore'
-import creds from '../../../fbservercreds.json'
-import { StripeSubscription } from '../../../types/stripe/subscription'
-
+import {
+  StripeSubscription,
+  StripeSubscriptionStatus,
+} from '../../../types/stripe/subscription'
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 export default async function handler(
@@ -11,44 +10,34 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    const serviceAccount = creds as admin.ServiceAccount
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      })
-    }
-    console.log('req', req)
-    const customer_id = req.query.stripe_customer_id
-    const subscriptions = await stripe.subscriptions.list({
+    // console.log(req.query!.stripe_customer_id)
+    const customer_id = req.query!.stripe_customer_id
+    const active_subscriptions = await stripe.subscriptions.list({
       customer: customer_id,
-      status: 'all',
+      status: 'active',
       expand: ['data.default_payment_method'],
     })
-    console.log('server subscription', subscriptions)
-
-    let results: string[] = []
-
-    subscriptions.map((sub: StripeSubscription) => {
-      results.push(sub.plan.id)
+    const trialing_subscriptions = await stripe.subscriptions.list({
+      customer: customer_id,
+      status: 'trialing',
+      expand: ['data.default_payment_method'],
     })
-
-    console.log('server results', results)
-
-    const db = getFirestore()
-    const uid = req.query.firebase_user_id as string
-    console.log('uid', uid)
-    db.collection('users').doc(uid).set({
-      firebase_user_id: uid,
-      stripe_customer_id: customer_id,
-      subscriptions: results,
+    // console.log('server subscription', subscriptions.data)
+    const status_list: StripeSubscriptionStatus[] = []
+    active_subscriptions.data.map((sub: StripeSubscription) => {
+      // status[`${sub.id}`] = sub.status
+      const tmp_status: StripeSubscriptionStatus = {}
+      tmp_status[`${sub.plan.nickname}`] = sub.status
+      status_list.push(tmp_status)
     })
-    db.collection('users')
-      .doc(uid)
-      .get()
-      .then((data) => {
-        data.data()
-        res.json({ data: data.data })
-      })
+    trialing_subscriptions.data.map((sub: StripeSubscription) => {
+      // status[`${sub.id}`] = sub.status
+      const tmp_status: StripeSubscriptionStatus = {}
+      tmp_status[`${sub.plan.nickname}`] = sub.status
+      status_list.push(tmp_status)
+    })
+    // console.log(`Server results:\n%o`, status_list)
+    res.json(status_list)
   } catch (err) {
     console.log(err)
   }
