@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import Stripe from 'stripe'
 import { AuthContext } from '../../context/index'
 import type { AuthContextType } from '../../context/index'
+import { Center } from '@chakra-ui/react'
 
 type PriceCard = {
   price: Stripe.Price
@@ -17,25 +18,27 @@ const PriceCard = ({
   const [state, setState] = useContext<AuthContextType>(AuthContext)
 
   const dynamicDescription = () => {
-    if (price.nickname === 'BASIC') {
-      return 'It can include 5 users.'
-    } else if (price.nickname === 'STANDARD') {
+    if (price.nickname?.split('_')[0] === 'STANDARD') {
       return 'It can include 10 users.'
-    } else if (price.nickname === 'PREMIUM') {
+    } else if (price.nickname?.split('_')[0] === 'PREMIUM') {
       return 'It can include 20 users.'
     }
   }
 
   const buttonStyle = (price: Stripe.Price) => {
-    return price.nickname === 'BASIC' ? 'btn-outline-danger' : 'btn-danger'
+    return price.nickname?.split('_')[0] === 'STANDARD'
+      ? 'btn-outline-danger'
+      : 'btn-danger'
   }
 
   const headerStyle = () => {
-    return price.nickname === 'PREMIUM' ? 'bg-danger text-light' : ''
+    return price.nickname?.split('_')[0] === 'PREMIUM'
+      ? 'bg-danger text-light'
+      : ''
   }
 
   const borderStyle = () => {
-    return price.nickname === 'PREMIUM' ? 'border-danger' : ''
+    return price.nickname?.split('_')[0] === 'PREMIUM' ? 'border-danger' : ''
   }
 
   const buttonText = () => {
@@ -49,28 +52,34 @@ const PriceCard = ({
           <h4 className='my-0 fw-normal'>{price.nickname}</h4>
         </div>
         <div className='card-body'>
-          <h1 className='card-title pricing-card-title'>
-            {((price.unit_amount as number) / 100).toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            })}{' '}
-            <small className='text-muted'>/mo</small>
-          </h1>
-          <ul className='list-unstyled mt-3 mb-4'>
-            <li className='fw-bold'>{dynamicDescription()}</li>
-            <li>2 GB of storage</li>
-            <li>Email support</li>
-            <li>Help center access</li>
-          </ul>
+          <Center>
+            <h1 className='card-title pricing-card-title'>
+              {((price.unit_amount as number) / 100).toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })}{' '}
+              <small className='text-muted'>/mo</small>
+            </h1>
+          </Center>
+          <Center>
+            <ul className='list-unstyled mt-3 mb-4'>
+              <li className='fw-bold'>・{dynamicDescription()}</li>
+              <li>・2 GB of storage</li>
+              <li>・Email support</li>
+              <li>・Help center access</li>
+            </ul>
+          </Center>
           {/* <pre>{JSON.stringify(price, null, 4)}</pre> */}
-          <button
-            onClick={(e) => handleSubscription(e, price)}
-            className={`w-100 btn btn-lg ${buttonStyle(price)}`}
-          >
-            {userSubscriptions && userSubscriptions.includes(price.id)
-              ? 'Access plan'
-              : buttonText()}
-          </button>
+          <Center>
+            <button
+              onClick={(e) => handleSubscription(e, price)}
+              className={`w-100 btn btn-lg ${buttonStyle(price)}`}
+            >
+              {userSubscriptions && userSubscriptions.includes(price.id)
+                ? 'Access plan'
+                : buttonText()}
+            </button>
+          </Center>
         </div>
       </div>
     </div>
