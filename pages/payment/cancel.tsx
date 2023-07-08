@@ -11,7 +11,7 @@ const PaymentCancel = () => {
   useEffect(() => {
     setTimeout(() => {
       router.push('/')
-    }, 3000)
+    }, 2000)
   }, [])
   return (
     <Alert
