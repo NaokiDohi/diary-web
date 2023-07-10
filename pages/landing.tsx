@@ -7,25 +7,27 @@ import GuestLayout from '../layouts/GuestLayout'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
 import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
-import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
-import { Divider } from '@chakra-ui/react'
-import type { DayValue } from '@hassanmojab/react-modern-calendar-datepicker'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
 import type { AuthContextType } from '../context/index'
-import type { StripeSubscription } from '../types/stripe/subscription'
-import { parseCookies } from 'nookies'
+
+type BillingInterval = 'year' | 'month'
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
   const [state, setState] = useContext<AuthContextType>(AuthContext)
   const [prices, setPrices] = useState([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
+  const [billingInterval, setBillingInterval] =
+    useState<BillingInterval>('month')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   // console.log('router info', router)
   // console.log('This use is', state.user.loggedInUser)
+  const intervals = Array.from(
+    new Set(prices?.map((price: Stripe.Price) => price.recurring?.interval))
+  )
 
   const fetchPrices = async () => {
     const { data } = await axios.get('/api/subscriptions/prices')
@@ -38,10 +40,10 @@ const Home: NextPageWithLayout = () => {
     price: Stripe.Price
   ) => {
     e.preventDefault()
-    if (userSubscriptions && userSubscriptions.includes(price.id)) {
-      router.push(`/${price.nickname?.toLowerCase()}`)
-      return
-    }
+    // if (userSubscriptions && userSubscriptions.includes(price.id)) {
+    //   router.push(`/${price.nickname?.toLowerCase()}`)
+    //   return
+    // }
     // console.log('Plan was clicked. price_id is', price.id)
     if (state.user.loggedInUser) {
       console.log(state.user.stripe_customer_id)
@@ -57,56 +59,24 @@ const Home: NextPageWithLayout = () => {
   }
 
   useEffect(() => {
-    const getSubscriptions = async () => {
-      console.log(`get subs : ${state.user.stripe_customer_id}`)
-      const cookies = parseCookies()
-      console.log(`get sub:${cookies.stripe_customer_id}`)
-      console.log(`get sub:${cookies.token}`)
-      if (
-        typeof cookies.token == undefined ||
-        typeof cookies.stripe_customer_id == undefined
-      ) {
-        console.log('hogegegegegege1')
-        return null
-      } else {
-        const { data } = await axios.get('/api/subscriptions/list', {
-          params: {
-            stripe_customer_id: cookies.stripe_customer_id,
-          },
-        })
-        console.log('Subs =>', data.data)
-        setUserSubscriptions(data.data)
-        setState({
-          ...state,
-          user: {
-            ...state.user,
-            stripe_customer_id: cookies.stripe_customer_id,
-            subscriptions: userSubscriptions,
-          },
-        })
-        console.log('hogegegegegege2')
-        console.log(state)
-      }
-      getSubscriptions()
-      // console.log(userSubscriptions)
-    }
-  }, [])
-
-  useEffect(() => {
-    console.log(`state hogehoge: ${state.user.loggedInUser?.email}`)
-    if (state.user.loggedInUser) {
+    // console.log(`state %o:`, state.user)
+    // console.log(`user subscription:%o`, userSubscriptions)
+    if (
+      state.user.loggedInUser &&
+      state.user.stripe_customer_id &&
+      state.user.subscriptions.length !== 0
+    ) {
       setIsLoggedIn(true)
-      if (userSubscriptions.length != 0) {
-        console.log(`user subscription: ${userSubscriptions.length}`)
-        router.push('/')
-      } else {
-        fetchPrices()
-      }
+      // console.log(`user subscription length: ${userSubscriptions.length}`)
+      router.push('/')
     } else {
-      // router.push('/')
       fetchPrices()
     }
-  }, [state.user.loggedInUser])
+  }, [
+    state.user.loggedInUser,
+    state.user.stripe_customer_id,
+    state.user.subscriptions,
+  ])
 
   return (
     <div className={styles.container}>
@@ -120,25 +90,66 @@ const Home: NextPageWithLayout = () => {
           <Heading as='h1' fontSize='30px'>
             Diary
           </Heading>
-
           <div>
-            <Heading as='h2' fontSize='20px'>
-              This is for Guest User
-            </Heading>
+            <Center>
+              <Heading as='h2' fontSize='20px'>
+                This is for Guest User
+              </Heading>
+            </Center>
             <Center>
               <Box overflowY='auto' maxWidth='800px' maxHeight='500px'>
-                Chose your Plan
-                <HStack>
-                  {prices &&
-                    prices.map((price: Stripe.Price) => (
-                      <PriceCard
-                        key={price.id}
-                        price={price}
-                        handleSubscription={handleClick}
-                        userSubscriptions={userSubscriptions}
-                      />
-                    ))}
-                </HStack>
+                <Center>
+                  <Heading as='h3' fontSize='20px'>
+                    Chose your Plan
+                  </Heading>
+                </Center>
+                <div className='relative self-center mt-6 bg-gray-800 rounded-lg p-0.5 flex sm:mt-8 border border-zinc-800'>
+                  <Spacer />
+                  {intervals.includes('month') && (
+                    <button
+                      onClick={() => setBillingInterval('month')}
+                      type='button'
+                      className={`${
+                        billingInterval === 'month'
+                          ? 'relative w-1/2 bg-zinc-700 border-gray-800 shadow-sm text-white'
+                          : 'ml-0.5 relative w-1/2 border border-transparent text-zinc-400'
+                      } rounded-md m-1 py-2 text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50 focus:z-10 sm:w-auto sm:px-8`}
+                    >
+                      Monthly billing
+                    </button>
+                  )}
+                  <Spacer />
+                  {intervals.includes('year') && (
+                    <button
+                      onClick={() => setBillingInterval('year')}
+                      type='button'
+                      className={`${
+                        billingInterval === 'year'
+                          ? 'relative w-1/2 bg-zinc-700 border-gray-800 shadow-sm text-white'
+                          : 'ml-0.5 relative w-1/2 border border-transparent text-zinc-400'
+                      } rounded-md m-1 py-2 text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50 focus:z-10 sm:w-auto sm:px-8`}
+                    >
+                      Yearly billing
+                    </button>
+                  )}
+                  <Spacer />
+                </div>
+                <Center>
+                  <HStack>
+                    {prices &&
+                      prices.map(
+                        (price: Stripe.Price) =>
+                          price.recurring?.interval === billingInterval && (
+                            <PriceCard
+                              key={price.id}
+                              price={price}
+                              handleSubscription={handleClick}
+                              // userSubscriptions={userSubscriptions}
+                            />
+                          )
+                      )}
+                  </HStack>
+                </Center>
               </Box>
             </Center>
           </div>

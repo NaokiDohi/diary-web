@@ -7,14 +7,14 @@ import { Center } from '@chakra-ui/react'
 type PriceCard = {
   price: Stripe.Price
   handleSubscription: Function
-  userSubscriptions: string[]
+  // userSubscriptions: string[]
 }
 
 const PriceCard = ({
   price,
   handleSubscription,
-  userSubscriptions,
-}: PriceCard) => {
+}: // userSubscriptions,
+PriceCard) => {
   const [state, setState] = useContext<AuthContextType>(AuthContext)
 
   const dynamicDescription = () => {
@@ -75,9 +75,11 @@ const PriceCard = ({
               onClick={(e) => handleSubscription(e, price)}
               className={`w-100 btn btn-lg ${buttonStyle(price)}`}
             >
-              {userSubscriptions && userSubscriptions.includes(price.id)
+              {/* {userSubscriptions && userSubscriptions.includes(price.id)
                 ? 'Access plan'
-                : buttonText()}
+                : buttonText()
+              } */}
+              {buttonText()}
             </button>
           </Center>
         </div>

@@ -5,10 +5,11 @@ import {
   SetStateAction,
   useEffect,
 } from 'react'
+import axios from 'axios'
 import nookies, { parseCookies } from 'nookies'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import type { User } from 'firebase/auth'
-import { getSingleDoc } from '../assets/firebaseClientHelpers'
+import type { StripeSubscriptionStatus } from '../types/stripe/subscription'
 
 type Props = {
   children: React.ReactNode
@@ -18,7 +19,7 @@ export type AuthStateType = {
   user: {
     loggedInUser: User | null
     stripe_customer_id: string | null
-    subscriptions: string[]
+    subscriptions: StripeSubscriptionStatus[]
   }
 }
 
@@ -39,17 +40,21 @@ const AuthProvider = ({ children }: Props) => {
   })
 
   useEffect(() => {
-    onAuthStateChanged(getAuth(), (loggedInUser) => {
+    // console.log('context is mounted:\n%o', state)
+    const unsubscribe = onAuthStateChanged(getAuth(), async (loggedInUser) => {
       if (loggedInUser) {
         loggedInUser
           .getIdToken()
           .then((token) => nookies.set(undefined, 'token', token, {}))
 
         const cookies = parseCookies()
-        console.log('%o', cookies)
-        console.log(`${cookies.stripe_customer_id}`)
-        const userInfo = getSingleDoc('user', loggedInUser.uid)
-        console.log(userInfo)
+        // console.log('cookies:\n%o', cookies)
+        const { data } = await axios.get('/api/subscriptions/status', {
+          params: {
+            stripe_customer_id: cookies.stripe_customer_id,
+          },
+        })
+        // console.log(`getting subscription status in context:\n%o`, data)
 
         setState((oldState: AuthStateType) => ({
           ...oldState,
@@ -57,21 +62,22 @@ const AuthProvider = ({ children }: Props) => {
             ...oldState.user,
             loggedInUser: loggedInUser,
             stripe_customer_id: cookies.stripe_customer_id,
-            subscriptions: [],
+            subscriptions: data,
           },
         }))
       }
     })
-  }, [
-    state.user.loggedInUser,
-    state.user.stripe_customer_id,
-    state.user.subscriptions,
-  ])
+    return () => unsubscribe()
+  }, [])
 
   // axios config
-  // const token = state && state.token ? state.token : ''
-  // axios.defaults.baseURL = process.env.REACT_APP_API_URL
-  // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  const token =
+    state && state.user.loggedInUser?.getIdToken()
+      ? state.user.loggedInUser?.getIdToken()
+      : ''
+  axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  // console.log(`context idex is called:\n%o`, state)
 
   return (
     <AuthContext.Provider value={[state, setState]}>

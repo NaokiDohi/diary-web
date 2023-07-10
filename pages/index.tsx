@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { AuthContext } from '../context/index'
 import PriceCard from '../components/Cards/PriceCard'
-import GuestLayout from '../layouts/GuestLayout'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
 import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
@@ -13,8 +12,9 @@ import { Divider } from '@chakra-ui/react'
 import type { DayValue } from '@hassanmojab/react-modern-calendar-datepicker'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
-import type { AuthContextType, AuthStateType } from '../context/index'
-import type { StripeSubscription } from '../types/stripe/subscription'
+import type { AuthContextType } from '../context/index'
+import type { StripeSubscriptionStatus } from '../types/stripe/subscription'
+import AuthLayout from '../layouts/AuthLayout'
 
 const Home: NextPageWithLayout = () => {
   var today = new Date()
@@ -25,19 +25,33 @@ const Home: NextPageWithLayout = () => {
   }
   const router = useRouter()
   const [state, setState] = useContext<AuthContextType>(AuthContext)
+  // console.log('state define in page/index.js:\n%o', state)
   const [prices, setPrices] = useState<Stripe.Price[]>([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
+  const [status, setStatus] = useState<StripeSubscriptionStatus[]>([])
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useState<DayValue>(defaultValue)
   // console.log('router info', router)
   // console.log('This use is', state.user.loggedInUser)
 
-  const fetchPrices = async () => {
-    const { data } = await axios.get('/api/subscriptions/prices')
-    // console.log('Getting Prices', data)
-    setPrices(data)
-  }
+  // const checkObjctKey = (obj: Object) => {
+  //   const isExists =
+  //     obj.hasOwnProperty('STANDARD_MONTHLY') ||
+  //     obj.hasOwnProperty('STANDARD_YEARLY') ||
+  //     obj.hasOwnProperty('PREMIUM_MONTHLY') ||
+  //     obj.hasOwnProperty('PREMIUM_YEARLY')
+  //   return isExists
+  // }
+
+  // const checkIsActive = () => {
+  //   const isActive = state.user.subscriptions.map((obj: Object) => {
+  //     const values = Object.values(obj)
+  //     const isActive = values.includes('active') || values.includes('trial')
+  //     return isActive
+  //   })
+  //   return isActive
+  // }
 
   const handleClick = async (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -50,7 +64,7 @@ const Home: NextPageWithLayout = () => {
     }
     // console.log('Plan was clicked. price_id is', price.id)
     if (state.user.loggedInUser) {
-      console.log(state.user.stripe_customer_id)
+      // console.log(state.user.stripe_customer_id)
       const { data } = await axios.post('api/checkout/create', {
         priceId: price.id,
         stripe_customer_id: state.user.stripe_customer_id,
@@ -61,53 +75,31 @@ const Home: NextPageWithLayout = () => {
       router.push('/register')
     }
   }
-  // useEffect(() => {
-  //   console.log(`state subscription:\n${state.user.stripe_customer_id}`)
-  //   if (state.user.stripe_customer_id == null) {
-  //     fetchPrices()
-  //     return
-  //   }
-  //   const getSubscriptions = async () => {
-  //     const { data } = await axios.get('/api/subscriptions/list', {
-  //       params: {
-  //         stripe_customer_id: state.user.stripe_customer_id,
-  //       },
-  //     })
-  //     console.log(data.data)
-  //     setUserSubscriptions(data.data)
-  //     console.log(`state set subscription:\n${state}`)
-  //     setState({
-  //       ...state,
-  //       user: {
-  //         ...state.user,
-  //         // loggedInUser: null,
-  //         // stripe_customer_id: null,
-  //         subscriptions: userSubscriptions,
-  //       },
-  //     })
-  //     console.log(state)
-  //   }
-  //   getSubscriptions()
-  // }, [state.user.subscriptions])
 
   useEffect(() => {
-    console.log(`state check login and stripe:\n${state.user.loggedInUser}`)
-    console.log(
-      `state check login and stripe:\n${state.user.stripe_customer_id}`
-    )
-    console.log(`state check login and stripe:\n${state.user.subscriptions}`)
-    if (state.user.loggedInUser) {
-      console.log('hoge')
+    // console.log('page index is mounted.')
+    // console.log('useEffect is called in page/index.js:\n%o', state)
+    // console.log(`state.user.subscriptions:\n%o`, state.user)
+    // Please fixe a bug about getting cookie's data.
+    if (!state.user.loggedInUser) {
+      // console.log('Please login')
+      router.replace('/login')
+    } else if (
+      state.user.loggedInUser &&
+      state.user.stripe_customer_id &&
+      state.user.subscriptions.length !== 0
+    ) {
+      // console.log('set Login and Subscribe')
       setIsLoggedIn(true)
-      if (state.user.stripe_customer_id && userSubscriptions.length != 0) {
-        setIsSubscribed(true)
-      } else {
-        router.push('/landing')
-      }
+      setIsSubscribed(true)
     } else {
       router.push('/landing')
     }
-  }, [state.user.loggedInUser, userSubscriptions])
+  }, [
+    state.user.loggedInUser,
+    state.user.stripe_customer_id,
+    state.user.subscriptions,
+  ])
 
   let items = []
   for (let i = 1; i <= 100; i++) {
@@ -183,7 +175,7 @@ const Home: NextPageWithLayout = () => {
                             key={price.id}
                             price={price}
                             handleSubscription={handleClick}
-                            userSubscriptions={userSubscriptions}
+                            // userSubscriptions={userSubscriptions}
                           />
                         ))}
                     </HStack>
@@ -201,4 +193,4 @@ const Home: NextPageWithLayout = () => {
 
 export default Home
 
-Home.layout = (page) => <GuestLayout>{page}</GuestLayout>
+Home.layout = (page) => <AuthLayout>{page}</AuthLayout>

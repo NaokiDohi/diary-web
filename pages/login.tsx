@@ -82,7 +82,7 @@ const Login: NextPageWithLayout = () => {
     setErrorEmail(emailError)
     setErrorPassword(passwordError)
   }
-  console.log(state)
+
   return (
     <div className='grid place-items-center mt-32'>
       <Head>
