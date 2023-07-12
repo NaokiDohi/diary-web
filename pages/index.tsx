@@ -1,11 +1,30 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { AuthContext } from '../context/index'
 import PriceCard from '../components/Cards/PriceCard'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
-import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
+import {
+  Center,
+  Heading,
+  VStack,
+  Box,
+  HStack,
+  Spacer,
+  Button,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  Input,
+} from '@chakra-ui/react'
 import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import { Divider } from '@chakra-ui/react'
@@ -24,6 +43,8 @@ const Home: NextPageWithLayout = () => {
     day: today.getDate(),
   }
   const router = useRouter()
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const initialRef = useRef(null)
   const [state, setState] = useContext<AuthContextType>(AuthContext)
   // console.log('state define in page/index.js:\n%o', state)
   const [prices, setPrices] = useState<Stripe.Price[]>([])
@@ -32,6 +53,8 @@ const Home: NextPageWithLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useState<DayValue>(defaultValue)
+  const [time, setTime] = useState('12:00')
+
   // console.log('router info', router)
   // console.log('This use is', state.user.loggedInUser)
 
@@ -129,7 +152,44 @@ const Home: NextPageWithLayout = () => {
                 onChange={setSelectedDay}
                 shouldHighlightWeekends
               />
-              {/* </div> */}
+              <>
+                <Button className='bg-green-500' size='lg' onClick={onOpen}>
+                  Register your events.
+                </Button>
+                <Modal
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  initialFocusRef={initialRef}
+                  isCentered
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader>Add Event</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <HStack>
+                        <VStack>
+                          <FormControl>
+                            <FormLabel>Title</FormLabel>
+                            <Input ref={initialRef} placeholder='Title' />
+                          </FormControl>
+
+                          <FormControl mt={4}>
+                            <FormLabel>Description </FormLabel>
+                            <Input placeholder='Description' />
+                          </FormControl>
+                        </VStack>
+                      </HStack>
+                    </ModalBody>
+
+                    <ModalFooter>
+                      <Button variant='ghost' className='bg-green-500'>
+                        Secondary Action
+                      </Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+              </>
             </VStack>
           </>
         ) : null}
