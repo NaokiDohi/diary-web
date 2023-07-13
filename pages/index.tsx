@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from 'react'
+import { useState, useEffect, useContext, useRef, memo } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { AuthContext } from '../context/index'
@@ -6,6 +6,7 @@ import PriceCard from '../components/Cards/PriceCard'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
 import {
+  Spinner,
   Center,
   Heading,
   VStack,
@@ -34,8 +35,8 @@ import type { Stripe } from 'stripe'
 import type { AuthContextType } from '../context/index'
 import type { StripeSubscriptionStatus } from '../types/stripe/subscription'
 import AuthLayout from '../layouts/AuthLayout'
-
-const Home: NextPageWithLayout = () => {
+// eslint-disable-next-line react/display-name
+const Home: NextPageWithLayout = memo(() => {
   var today = new Date()
   const defaultValue = {
     year: today.getFullYear(),
@@ -45,7 +46,7 @@ const Home: NextPageWithLayout = () => {
   const router = useRouter()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const initialRef = useRef(null)
-  const [state, setState] = useContext<AuthContextType>(AuthContext)
+  const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
   // console.log('state define in page/index.js:\n%o', state)
   const [prices, setPrices] = useState<Stripe.Price[]>([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
@@ -123,6 +124,20 @@ const Home: NextPageWithLayout = () => {
     state.user.stripe_customer_id,
     state.user.subscriptions,
   ])
+
+  if (isLoading) {
+    return (
+      <Center>
+        <Spinner
+          thickness='4px'
+          speed='0.65s'
+          emptyColor='gray.200'
+          color='green.400'
+          size='xl'
+        />
+      </Center>
+    )
+  }
 
   let items = []
   for (let i = 1; i <= 100; i++) {
@@ -249,8 +264,7 @@ const Home: NextPageWithLayout = () => {
       </HStack>
     </div>
   )
-}
-
+})
 export default Home
 
 Home.layout = (page) => <AuthLayout>{page}</AuthLayout>

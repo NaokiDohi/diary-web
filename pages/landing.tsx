@@ -6,7 +6,15 @@ import PriceCard from '../components/Cards/PriceCard'
 import GuestLayout from '../layouts/GuestLayout'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
-import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
+import {
+  Center,
+  Heading,
+  VStack,
+  Box,
+  HStack,
+  Spacer,
+  Spinner,
+} from '@chakra-ui/react'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
@@ -16,7 +24,7 @@ type BillingInterval = 'year' | 'month'
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const [state, setState] = useContext<AuthContextType>(AuthContext)
+  const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
   const [prices, setPrices] = useState([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
   const [billingInterval, setBillingInterval] =
@@ -77,6 +85,20 @@ const Home: NextPageWithLayout = () => {
     state.user.stripe_customer_id,
     state.user.subscriptions,
   ])
+
+  if (isLoading) {
+    return (
+      <Center>
+        <Spinner
+          thickness='4px'
+          speed='0.65s'
+          emptyColor='gray.200'
+          color='green.400'
+          size='xl'
+        />
+      </Center>
+    )
+  }
 
   return (
     <div className={styles.container}>

@@ -25,12 +25,14 @@ export type AuthStateType = {
 
 export type AuthContextType = [
   AuthStateType,
-  Dispatch<SetStateAction<AuthStateType>>
+  Dispatch<SetStateAction<AuthStateType>>,
+  boolean
 ]
 
 const defaultValue: AuthContextType = [
   { user: { loggedInUser: null, stripe_customer_id: null, subscriptions: [] } },
   () => {},
+  true,
 ]
 const AuthContext = createContext<AuthContextType>(defaultValue)
 
@@ -38,6 +40,7 @@ const AuthProvider = ({ children }: Props) => {
   const [state, setState] = useState<AuthStateType>({
     user: { loggedInUser: null, stripe_customer_id: null, subscriptions: [] },
   })
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // console.log('context is mounted:\n%o', state)
@@ -65,6 +68,7 @@ const AuthProvider = ({ children }: Props) => {
             subscriptions: data,
           },
         }))
+        setIsLoading(false) // 認証情報の取得完了
       }
     })
     return () => unsubscribe()
@@ -80,7 +84,7 @@ const AuthProvider = ({ children }: Props) => {
   // console.log(`context idex is called:\n%o`, state)
 
   return (
-    <AuthContext.Provider value={[state, setState]}>
+    <AuthContext.Provider value={[state, setState, isLoading]}>
       {children}
     </AuthContext.Provider>
   )
