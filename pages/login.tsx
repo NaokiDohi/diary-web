@@ -11,15 +11,13 @@ import validate from '../assets/validation'
 import GuestLayout from '../layouts/GuestLayout'
 import type { NextPageWithLayout } from './_app'
 import type { AuthContextType, AuthStateType } from '../context/index'
-import { Center, Spinner } from '@chakra-ui/react'
-
 const Login: NextPageWithLayout = () => {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [errorEmail, setErrorEmail] = useState<string>('')
   const [errorPassword, setErrorPassword] = useState<string>('')
 
-  const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const router = useRouter()
 
   useEffect(() => {
@@ -82,20 +80,6 @@ const Login: NextPageWithLayout = () => {
   const setErrors = (emailError: string, passwordError: string) => {
     setErrorEmail(emailError)
     setErrorPassword(passwordError)
-  }
-
-  if (isLoading) {
-    return (
-      <Center>
-        <Spinner
-          thickness='4px'
-          speed='0.65s'
-          emptyColor='gray.200'
-          color='green.400'
-          size='xl'
-        />
-      </Center>
-    )
   }
 
   return (
