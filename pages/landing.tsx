@@ -24,7 +24,7 @@ type BillingInterval = 'year' | 'month'
 
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
+  const [state, setState] = useContext<AuthContextType>(AuthContext)
   const [prices, setPrices] = useState([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
   const [billingInterval, setBillingInterval] =
@@ -85,20 +85,6 @@ const Home: NextPageWithLayout = () => {
     state.user.stripe_customer_id,
     state.user.subscriptions,
   ])
-
-  if (isLoading) {
-    return (
-      <Center>
-        <Spinner
-          thickness='4px'
-          speed='0.65s'
-          emptyColor='gray.200'
-          color='green.400'
-          size='xl'
-        />
-      </Center>
-    )
-  }
 
   return (
     <div className={styles.container}>
