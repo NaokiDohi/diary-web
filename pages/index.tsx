@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef, memo } from 'react'
+import { useState, useEffect, useContext, KeyboardEvent, memo } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { AuthContext } from '../context/index'
@@ -25,10 +25,13 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Divider,
+  FormErrorMessage,
 } from '@chakra-ui/react'
+import { useForm } from 'react-hook-form'
+import { isAfter, setMinutes, setHours } from 'date-fns'
 import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
-import { Divider } from '@chakra-ui/react'
 import type { DayValue } from '@hassanmojab/react-modern-calendar-datepicker'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
@@ -45,7 +48,6 @@ const Home: NextPageWithLayout = memo(() => {
   }
   const router = useRouter()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const initialRef = useRef(null)
   const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
   // console.log('state define in page/index.js:\n%o', state)
   const [prices, setPrices] = useState<Stripe.Price[]>([])
@@ -54,7 +56,70 @@ const Home: NextPageWithLayout = memo(() => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useState<DayValue>(defaultValue)
-  const [time, setTime] = useState('12:00')
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+    watch,
+    reset,
+  } = useForm({
+    mode: 'onBlur', // フォームのバリデーションはフォーカスが外れたタイミングで行われるように設定
+  })
+  const startTime = watch('start_time')
+  const endTime = watch('end_time')
+
+  const handleKeyPress = (
+    event: KeyboardEvent<HTMLInputElement>,
+    fieldName: string | undefined
+  ) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      const form = event.currentTarget.form as HTMLFormElement
+      const formElementsArray = Array.from(form.elements) as HTMLInputElement[]
+      if (fieldName) {
+        const nextIndex = formElementsArray.findIndex(
+          (element) => element.name === fieldName
+        )
+        const nextInput = formElementsArray[nextIndex]
+        if (nextInput) nextInput.focus()
+      } else {
+        // trigger(fieldName) // バリデーションをトリガー
+        handleSubmit(handleSecondaryActionClick)()
+      }
+    }
+  }
+
+  const closeAndReset = () => {
+    onClose() // Close the modal after successful data submission.
+    reset() // Reset string in the form,
+  }
+
+  // Step 4: Handle Secondary Action button click
+  const handleSecondaryActionClick = async (values: any) => {
+    // console.log(`%o`, values)
+    const [startHours, startMinutes] = startTime.split(':')
+    const startDateTime = setMinutes(setHours(today, startHours), startMinutes)
+    const [endHours, endMinutes] = endTime.split(':')
+    const endDateTime = setMinutes(setHours(today, endHours), endMinutes)
+    // console.log(startDateTime)
+    // console.log(endDateTime)
+
+    // Save the form data to the database using Prisma
+    try {
+      await axios.post('/api/events/create', {
+        title: values.title,
+        description: values.description,
+        startTime: startDateTime,
+        endTime: endDateTime,
+      })
+      // Data saved successfully, you can perform any additional actions here if needed.
+      console.log('Event data saved to the database.')
+      closeAndReset()
+    } catch (error) {
+      console.error('Error saving event data:', error)
+    }
+  }
 
   // console.log('router info', router)
   // console.log('This use is', state.user.loggedInUser)
@@ -171,35 +236,117 @@ const Home: NextPageWithLayout = memo(() => {
                 <Button className='bg-green-500' size='lg' onClick={onOpen}>
                   Register your events.
                 </Button>
-                <Modal
-                  isOpen={isOpen}
-                  onClose={onClose}
-                  initialFocusRef={initialRef}
-                  isCentered
-                >
+                <Modal isOpen={isOpen} onClose={closeAndReset} isCentered>
                   <ModalOverlay />
-                  <ModalContent>
+                  <ModalContent
+                    as='form'
+                    onSubmit={handleSubmit(handleSecondaryActionClick)}
+                  >
                     <ModalHeader>Add Event</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                       <HStack>
                         <VStack>
-                          <FormControl>
+                          <FormControl isInvalid={Boolean(errors.title)}>
                             <FormLabel>Title</FormLabel>
-                            <Input ref={initialRef} placeholder='Title' />
+                            <Input
+                              id='title'
+                              placeholder='Title'
+                              onKeyDown={(event) =>
+                                handleKeyPress(event, 'description')
+                              }
+                              {...register('title', {
+                                required: 'Title is requreid!!',
+                              })}
+                            />
+                            <FormErrorMessage>
+                              {errors.title &&
+                                (errors.title.message as React.ReactNode)}
+                            </FormErrorMessage>
                           </FormControl>
 
-                          <FormControl mt={4}>
-                            <FormLabel>Description </FormLabel>
-                            <Input placeholder='Description' />
+                          <FormControl isInvalid={Boolean(errors.description)}>
+                            <FormLabel>Description</FormLabel>
+                            <Input
+                              id='description'
+                              placeholder='Description'
+                              onKeyDown={(event) =>
+                                handleKeyPress(event, 'start_time')
+                              }
+                              {...register('description', {
+                                required: 'Description is required!!',
+                              })}
+                            />
+
+                            <FormErrorMessage>
+                              {errors.description &&
+                                (errors.description.message as React.ReactNode)}
+                            </FormErrorMessage>
+                          </FormControl>
+                        </VStack>
+                        <VStack>
+                          <FormControl isInvalid={Boolean(errors.start_time)}>
+                            <FormLabel>Start Time</FormLabel>
+                            <Input
+                              id='start-time'
+                              size='md'
+                              type='time'
+                              onKeyDown={(event) =>
+                                handleKeyPress(event, 'end_time')
+                              }
+                              {...register('start_time', {
+                                required: 'Start time is requreid!!',
+                              })}
+                            />
+                            <FormErrorMessage>
+                              {errors.start_time &&
+                                (errors.start_time.message as React.ReactNode)}
+                            </FormErrorMessage>
+                          </FormControl>
+                          <FormControl isInvalid={Boolean(errors.end_time)}>
+                            <FormLabel>End Time</FormLabel>
+                            <Input
+                              id='end-time'
+                              size='md'
+                              type='time'
+                              {...register('end_time', {
+                                required: 'end time is requreid!!',
+                                validate: (endTime) => {
+                                  const [endHours, endMinutes] =
+                                    endTime.split(':')
+                                  const endDateTime = setMinutes(
+                                    setHours(today, endHours),
+                                    endMinutes
+                                  )
+                                  const [startHours, startMinutes] =
+                                    startTime.split(':')
+                                  const startDateTime = setMinutes(
+                                    setHours(today, startHours),
+                                    startMinutes
+                                  )
+                                  return isAfter(endDateTime, startDateTime)
+                                    ? true
+                                    : 'End time must be after Start time'
+                                },
+                              })}
+                            />
+                            <FormErrorMessage>
+                              {errors.end_time &&
+                                (errors.end_time.message as React.ReactNode)}
+                            </FormErrorMessage>
                           </FormControl>
                         </VStack>
                       </HStack>
                     </ModalBody>
 
                     <ModalFooter>
-                      <Button variant='ghost' className='bg-green-500'>
-                        Secondary Action
+                      <Button
+                        variant='ghost'
+                        className='bg-green-500'
+                        isLoading={isSubmitting}
+                        type='submit'
+                      >
+                        Register your event
                       </Button>
                     </ModalFooter>
                   </ModalContent>
