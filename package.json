@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db": "npx prisma studio"
   },
   "dependencies": {
     "@adiranids/react-tailwind": "^1.0.5",
@@ -14,10 +15,12 @@
     "@hassanmojab/react-modern-calendar-datepicker": "^3.1.7",
     "@headlessui/react": "^1.7.3",
     "@heroicons/react": "^2.0.12",
+    "@prisma/client": "^5.0.0",
     "@stripe/react-stripe-js": "^1.13.0",
     "@stripe/stripe-js": "^1.42.0",
     "axios": "^1.1.3",
     "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
     "firebase": "^9.12.1",
     "firebase-admin": "^11.2.0",
     "moment": "^2.29.4",
@@ -26,6 +29,7 @@
     "nookies": "^2.5.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.45.4",
     "stripe": "^10.14.0"
   },
   "devDependencies": {
