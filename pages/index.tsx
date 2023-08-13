@@ -31,7 +31,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { isAfter, setMinutes, setHours } from 'date-fns'
 import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 import AuthLayout from '../layouts/AuthLayout'
 import EventCard from '../components/Cards/EventCard'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
@@ -60,6 +60,7 @@ const Home: NextPageWithLayout = memo(() => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useState<DayValue>(defaultValue)
+  const { mutate } = useSWRConfig()
 
   const zeroPad = (number: number, length: number) => {
     return number.toString().padStart(length, '0')
@@ -144,6 +145,12 @@ const Home: NextPageWithLayout = memo(() => {
       // Data saved successfully, you can perform any additional actions here if needed.
       console.log('Event data saved to the database.')
       closeAndReset()
+      mutate(
+        `/api/events/get?year=${selectedDay?.year}&month=${zeroPad(
+          selectedDay!.month,
+          2
+        )}&day=${zeroPad(selectedDay!.day, 2)}`
+      )
     } catch (error) {
       console.error('Error saving event data:', error)
     }
