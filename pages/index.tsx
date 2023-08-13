@@ -31,24 +31,28 @@ import {
 import { useForm } from 'react-hook-form'
 import { isAfter, setMinutes, setHours } from 'date-fns'
 import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
+import useSWR from 'swr'
+import AuthLayout from '../layouts/AuthLayout'
+import EventCard from '../components/Cards/EventCard'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import type { DayValue } from '@hassanmojab/react-modern-calendar-datepicker'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
 import type { AuthContextType } from '../context/index'
 import type { StripeSubscriptionStatus } from '../types/stripe/subscription'
-import AuthLayout from '../layouts/AuthLayout'
+import type { EventType } from '../types/event'
 // eslint-disable-next-line react/display-name
 const Home: NextPageWithLayout = memo(() => {
   var today = new Date()
   const defaultValue = {
     year: today.getFullYear(),
-    month: today.getMonth(),
+    month: today.getMonth() + 1,
     day: today.getDate(),
   }
   const router = useRouter()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [state, setState, isLoading] = useContext<AuthContextType>(AuthContext)
+  const [state, setState, isPageLoading] =
+    useContext<AuthContextType>(AuthContext)
   // console.log('state define in page/index.js:\n%o', state)
   const [prices, setPrices] = useState<Stripe.Price[]>([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
@@ -56,6 +60,21 @@ const Home: NextPageWithLayout = memo(() => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useState<DayValue>(defaultValue)
+
+  const zeroPad = (number: number, length: number) => {
+    return number.toString().padStart(length, '0')
+  }
+
+  const fetcher = (url: string): Promise<any> =>
+    fetch(url).then((res) => res.json())
+
+  const { data, error, isLoading } = useSWR(
+    `/api/events/get?year=${selectedDay?.year}&month=${zeroPad(
+      selectedDay!.month,
+      2
+    )}&day=${zeroPad(selectedDay!.day, 2)}`,
+    fetcher
+  )
 
   const {
     handleSubmit,
@@ -98,12 +117,21 @@ const Home: NextPageWithLayout = memo(() => {
   // Step 4: Handle Secondary Action button click
   const handleSecondaryActionClick = async (values: any) => {
     // console.log(`%o`, values)
+    const selectDate = new Date(
+      `${selectedDay?.year}-${zeroPad(selectedDay!.month, 2)}-${zeroPad(
+        selectedDay!.day,
+        2
+      )}`
+    )
     const [startHours, startMinutes] = startTime.split(':')
-    const startDateTime = setMinutes(setHours(today, startHours), startMinutes)
+    const startDateTime = setMinutes(
+      setHours(selectDate, startHours),
+      startMinutes
+    )
     const [endHours, endMinutes] = endTime.split(':')
-    const endDateTime = setMinutes(setHours(today, endHours), endMinutes)
-    // console.log(startDateTime)
-    // console.log(endDateTime)
+    const endDateTime = setMinutes(setHours(selectDate, endHours), endMinutes)
+    // console.log(`startDateTime:${startDateTime}`)
+    // console.log(`endDateTime:${endDateTime}`)
 
     // Save the form data to the database using Prisma
     try {
@@ -190,7 +218,7 @@ const Home: NextPageWithLayout = memo(() => {
     state.user.subscriptions,
   ])
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <Center>
         <Spinner
@@ -204,14 +232,6 @@ const Home: NextPageWithLayout = memo(() => {
     )
   }
 
-  let items = []
-  for (let i = 1; i <= 100; i++) {
-    items.push(
-      <li key={i} className='rounded bg-green-500 m-3'>
-        <Center>Event {i}</Center>
-      </li>
-    )
-  }
   return (
     <div className={styles.container}>
       <Head>
@@ -371,9 +391,10 @@ const Home: NextPageWithLayout = memo(() => {
                   This is for loggedInUser
                 </Heading>
                 <Box overflowY='auto' maxWidth='800px' maxHeight='500px'>
-                  <ul className='max-w-sm max-h-screen rounded shadow-lg'>
-                    {items}
-                  </ul>
+                  {data &&
+                    data.map((event: EventType) => (
+                      <EventCard key={event.id} event={event} />
+                    ))}
                 </Box>
               </div>
             ) : (
