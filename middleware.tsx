@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest, NextFetchEvent } from 'next/server'
 
 export const middleware = async (req: NextRequest, ev: NextFetchEvent) => {
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!req.nextUrl.pathname.startsWith('/')) {
     const request = await fetch(
       'http://localhost:3000/api/user/checkAuthStatus',
       {
