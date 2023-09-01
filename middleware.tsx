@@ -21,4 +21,21 @@ export const middleware = async (req: NextRequest, ev: NextFetchEvent) => {
     res.cookies.set('uid', response.success.uid)
     return res
   }
+  if (req.nextUrl.pathname.startsWith('/login')) {
+    const request = await fetch(
+      'http://localhost:3000/api/user/checkAuthStatus',
+      {
+        method: 'POST',
+        body: JSON.stringify({ token: req.cookies.get('token') }),
+        headers: { 'content-type': 'application/json' },
+      }
+    )
+    const response = await request.json()
+    // console.log('response\n', response)
+    if (response.error) {
+      console.log('Error', response.error)
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL('/', req.url))
+  }
 }
