@@ -22,7 +22,10 @@ const Login: NextPageWithLayout = () => {
 
   useEffect(() => {
     // console.log(state.user.loggedInUser)
-    if (state.user.loggedInUser) router.replace('/')
+    if (state.user.loggedInUser) {
+      router.push('/')
+      router.reload()
+    }
   }, [state.user.loggedInUser])
 
   const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
