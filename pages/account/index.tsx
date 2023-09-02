@@ -5,11 +5,11 @@ import moment from 'moment'
 import { AuthContext } from '../../context/index'
 import type { StripeSubscription } from '../../types/stripe/subscription'
 import type { AuthContextType } from '../../context/index'
+import { Center, VStack, Button } from '@chakra-ui/react'
 
 const Account = () => {
   const router = useRouter()
   const [state, setState] = useContext<AuthContextType>(AuthContext)
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [subscriptions, setSubscriptions] = useState([])
 
   useEffect(() => {
@@ -38,54 +38,58 @@ const Account = () => {
   }
 
   return (
-    <div className='container'>
-      <div className='row'>
-        <h1>Account</h1>
-        <p className='lead pb-4'>Your subscription Status.</p>
-        {/* <pre>{JSON.stringify(subscriptions, null, 4)}</pre> */}
+    <Center>
+      <div className='container '>
         <div className='row'>
-          {subscriptions &&
-            subscriptions.map((sub: StripeSubscription) => (
-              <div key={sub.id}>
-                <section>
-                  <hr />
-                  <h4 className='fw-bold'>{sub.plan.nickname}</h4>
-                  <h5>
-                    {(sub.plan.amount! / 100).toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: sub.plan.currency,
-                    })}
-                  </h5>
-                  <p>Status: {sub.status}</p>
-                  <p>
-                    Card last 4 digit: {sub.default_payment_method?.card.last4}
-                  </p>
-                  <p>
-                    Card expiry:
-                    {moment(sub.current_period_end * 1000)
-                      .format('dddd, MMMM Do YYYY h:mm:ss a')
-                      .toString()}
-                  </p>
-                  <button
-                    className='btn btn-outline-danger'
-                    onClick={() =>
-                      router.push(`../${sub.plan.nickname.toLowerCase()}`)
-                    }
-                  >
-                    Access
-                  </button>{' '}
-                  <button
-                    className='btn btn-outline-warning'
-                    onClick={manageSubscriptions}
-                  >
-                    Manage Subscriptions
-                  </button>
-                </section>
-              </div>
-            ))}
+          <Center>
+            <VStack>
+              <h1>Account</h1>
+              <p className='lead pb-4'>Your subscription Status.</p>
+            </VStack>
+          </Center>
+          {/* <pre>{JSON.stringify(subscriptions, null, 4)}</pre> */}
+          <Center>
+            <div className='row'>
+              {subscriptions &&
+                subscriptions.map((sub: StripeSubscription) => (
+                  <div key={sub.id}>
+                    <section>
+                      <hr />
+                      <h4 className='fw-bold'>{sub.plan.nickname}</h4>
+                      <h5>
+                        {sub.plan.amount!.toLocaleString('en-US', {
+                          style: 'currency',
+                          currency: sub.plan.currency,
+                        })}
+                      </h5>
+                      <p>Status: {sub.status}</p>
+                      <p>
+                        Card last 4 digit:{' '}
+                        {sub.default_payment_method?.card.last4}
+                      </p>
+                      <p>
+                        Card expiry:
+                        {moment(sub.current_period_end * 1000)
+                          .format('dddd, MMMM Do YYYY h:mm:ss a')
+                          .toString()}
+                      </p>
+                      <Center>
+                        <Button
+                          colorScheme='yellow'
+                          variant='outline'
+                          onClick={manageSubscriptions}
+                        >
+                          Manage Subscriptions
+                        </Button>
+                      </Center>
+                    </section>
+                  </div>
+                ))}
+            </div>
+          </Center>
         </div>
       </div>
-    </div>
+    </Center>
   )
 }
 
