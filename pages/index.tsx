@@ -29,11 +29,12 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useForm } from 'react-hook-form'
-import { isAfter, setMinutes, setHours } from 'date-fns'
+import { setMinutes, setHours } from 'date-fns'
 import { Calendar } from '@hassanmojab/react-modern-calendar-datepicker'
 import useSWR, { useSWRConfig } from 'swr'
 import AuthLayout from '../layouts/AuthLayout'
-import EventCard from '../components/Cards/EventCard'
+import EventDetailModal from '../components/Modal/EventDetailModal'
+import EventRegisterFormModal from '../components/Modal/EventRegisterFormModal'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import type { DayValue } from '@hassanmojab/react-modern-calendar-datepicker'
 import type { NextPageWithLayout } from './_app'
@@ -263,121 +264,17 @@ const Home: NextPageWithLayout = memo(() => {
                 <Button className='bg-green-500' size='lg' onClick={onOpen}>
                   Register your events.
                 </Button>
-                <Modal isOpen={isOpen} onClose={closeAndReset} isCentered>
-                  <ModalOverlay />
-                  <ModalContent
-                    as='form'
-                    onSubmit={handleSubmit(handleSecondaryActionClick)}
-                  >
-                    <ModalHeader>Add Event</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                      <HStack>
-                        <VStack>
-                          <FormControl isInvalid={Boolean(errors.title)}>
-                            <FormLabel>Title</FormLabel>
-                            <Input
-                              id='title'
-                              placeholder='Title'
-                              onKeyDown={(event) =>
-                                handleKeyPress(event, 'description')
-                              }
-                              {...register('title', {
-                                required: 'Title is requreid!!',
-                              })}
-                            />
-                            <FormErrorMessage>
-                              {errors.title &&
-                                (errors.title.message as React.ReactNode)}
-                            </FormErrorMessage>
-                          </FormControl>
-
-                          <FormControl isInvalid={Boolean(errors.description)}>
-                            <FormLabel>Description</FormLabel>
-                            <Input
-                              id='description'
-                              placeholder='Description'
-                              onKeyDown={(event) =>
-                                handleKeyPress(event, 'start_time')
-                              }
-                              {...register('description', {
-                                required: 'Description is required!!',
-                              })}
-                            />
-
-                            <FormErrorMessage>
-                              {errors.description &&
-                                (errors.description.message as React.ReactNode)}
-                            </FormErrorMessage>
-                          </FormControl>
-                        </VStack>
-                        <VStack>
-                          <FormControl isInvalid={Boolean(errors.start_time)}>
-                            <FormLabel>Start Time</FormLabel>
-                            <Input
-                              id='start-time'
-                              size='md'
-                              type='time'
-                              onKeyDown={(event) =>
-                                handleKeyPress(event, 'end_time')
-                              }
-                              {...register('start_time', {
-                                required: 'Start time is requreid!!',
-                              })}
-                            />
-                            <FormErrorMessage>
-                              {errors.start_time &&
-                                (errors.start_time.message as React.ReactNode)}
-                            </FormErrorMessage>
-                          </FormControl>
-                          <FormControl isInvalid={Boolean(errors.end_time)}>
-                            <FormLabel>End Time</FormLabel>
-                            <Input
-                              id='end-time'
-                              size='md'
-                              type='time'
-                              {...register('end_time', {
-                                required: 'end time is requreid!!',
-                                validate: (endTime) => {
-                                  const [endHours, endMinutes] =
-                                    endTime.split(':')
-                                  const endDateTime = setMinutes(
-                                    setHours(today, endHours),
-                                    endMinutes
-                                  )
-                                  const [startHours, startMinutes] =
-                                    startTime.split(':')
-                                  const startDateTime = setMinutes(
-                                    setHours(today, startHours),
-                                    startMinutes
-                                  )
-                                  return isAfter(endDateTime, startDateTime)
-                                    ? true
-                                    : 'End time must be after Start time'
-                                },
-                              })}
-                            />
-                            <FormErrorMessage>
-                              {errors.end_time &&
-                                (errors.end_time.message as React.ReactNode)}
-                            </FormErrorMessage>
-                          </FormControl>
-                        </VStack>
-                      </HStack>
-                    </ModalBody>
-
-                    <ModalFooter>
-                      <Button
-                        variant='ghost'
-                        className='bg-green-500'
-                        isLoading={isSubmitting}
-                        type='submit'
-                      >
-                        Register your event
-                      </Button>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal>
+                <EventRegisterFormModal
+                  isOpen={isOpen}
+                  onClose={closeAndReset}
+                  errors={errors}
+                  register={register}
+                  startTime={startTime}
+                  isSubmitting={isSubmitting}
+                  handleKeyPress={handleKeyPress}
+                  handleSubmit={handleSubmit}
+                  handleSecondaryActionClick={handleSecondaryActionClick}
+                />
               </>
             </VStack>
           </>
@@ -400,7 +297,7 @@ const Home: NextPageWithLayout = memo(() => {
                 <Box overflowY='auto' maxWidth='800px' maxHeight='500px'>
                   {data &&
                     data.map((event: EventType) => (
-                      <EventCard key={event.id} event={event} />
+                      <EventDetailModal key={event.id} event={event} />
                     ))}
                 </Box>
               </div>
