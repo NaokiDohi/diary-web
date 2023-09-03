@@ -13,7 +13,7 @@
     "@adiranids/react-tailwind": "^1.0.5",
     "@chakra-ui/card": "^2.2.0",
     "@chakra-ui/icons": "^2.0.0",
-    "@chakra-ui/react": "^2.3.6",
+    "@chakra-ui/react": "^2.4.2",
     "@hassanmojab/react-modern-calendar-datepicker": "^3.1.7",
     "@headlessui/react": "^1.7.3",
     "@heroicons/react": "^2.0.12",
