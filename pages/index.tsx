@@ -209,7 +209,7 @@ const Home: NextPageWithLayout = memo(() => {
     // Please fixe a bug about getting cookie's data.
     if (!state.user.loggedInUser) {
       // console.log('Please login')
-      router.replace('/login')
+      router.push('/landing')
     } else if (
       state.user.loggedInUser &&
       state.user.stripe_customer_id &&
@@ -218,8 +218,6 @@ const Home: NextPageWithLayout = memo(() => {
       // console.log('set Login and Subscribe')
       setIsLoggedIn(true)
       setIsSubscribed(true)
-    } else {
-      router.push('/landing')
     }
   }, [
     state.user.loggedInUser,
