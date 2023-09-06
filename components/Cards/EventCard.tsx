@@ -23,7 +23,11 @@ const EventCard = ({ event }: EventPropsType) => {
     .split(' ')[4]
     .split(':')
   return (
-    <Card minW='250px' className='rounded bg-green-500 m-1 shadow-lg'>
+    <Card
+      minW='250px'
+      maxW='250px'
+      className='rounded bg-green-500 m-1 shadow-lg'
+    >
       <CardHeader textAlign='left'>
         <Heading size='md' className='card-header'>
           {event.title}
