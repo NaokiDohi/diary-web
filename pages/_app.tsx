@@ -23,14 +23,12 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       return <GuestLayout>{page}</GuestLayout>
     })
 
-  return (
-    <AuthProvider>
-      {getLayout(
-        <ChakraProvider>
-          <Component {...pageProps} />
-        </ChakraProvider>
-      )}
-    </AuthProvider>
+  return getLayout(
+    <ChakraProvider>
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    </ChakraProvider>
   )
 }
 

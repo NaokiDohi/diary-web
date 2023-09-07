@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest, NextFetchEvent } from 'next/server'
 
 export const middleware = async (req: NextRequest, ev: NextFetchEvent) => {
-  if (req.nextUrl.pathname === '/') {
+  if (
+    req.nextUrl.pathname === '/' ||
+    req.nextUrl.pathname.startsWith('/account')
+  ) {
     const request = await fetch(
       'http://localhost:3000/api/user/checkAuthStatus',
       {
@@ -21,7 +24,10 @@ export const middleware = async (req: NextRequest, ev: NextFetchEvent) => {
     res.cookies.set('uid', response.success.uid)
     return res
   }
-  if (req.nextUrl.pathname.startsWith('/login')) {
+  if (
+    req.nextUrl.pathname.startsWith('/login') ||
+    req.nextUrl.pathname.startsWith('/register')
+  ) {
     const request = await fetch(
       'http://localhost:3000/api/user/checkAuthStatus',
       {

@@ -207,10 +207,11 @@ const Home: NextPageWithLayout = memo(() => {
     // console.log('useEffect is called in page/index.js:\n%o', state)
     // console.log(`state.user.subscriptions:\n%o`, state.user)
     // Please fixe a bug about getting cookie's data.
-    if (!state.user.loggedInUser) {
-      // console.log('Please login')
-      router.push('/landing')
-    } else if (
+    // if (!state.user.loggedInUser) {
+    //   // console.log('Please login')
+    //   // router.push('/landing')
+    // } else
+    if (
       state.user.loggedInUser &&
       state.user.stripe_customer_id &&
       state.user.subscriptions.length !== 0

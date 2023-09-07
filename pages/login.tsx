@@ -24,9 +24,8 @@ const Login: NextPageWithLayout = () => {
     // console.log(state.user.loggedInUser)
     if (state.user.loggedInUser) {
       router.push('/')
-      router.reload()
     }
-  }, [state.user.loggedInUser])
+  }, [router, state.user.loggedInUser])
 
   const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()

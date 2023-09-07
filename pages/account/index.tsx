@@ -13,8 +13,9 @@ const Account = () => {
   const [subscriptions, setSubscriptions] = useState([])
 
   useEffect(() => {
-    if (!state.user.loggedInUser) router.replace('/')
-    else if (state.user.loggedInUser) {
+    // if (!state.user.loggedInUser) router.replace('/')
+    // else
+    if (state.user.loggedInUser) {
       const getSubscriptions = async () => {
         const { data } = await axios.get('/api/subscriptions/list', {
           params: {
