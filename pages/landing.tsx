@@ -6,15 +6,7 @@ import PriceCard from '../components/Cards/PriceCard'
 import GuestLayout from '../layouts/GuestLayout'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
-import {
-  Center,
-  Heading,
-  VStack,
-  Box,
-  HStack,
-  Spacer,
-  Spinner,
-} from '@chakra-ui/react'
+import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
