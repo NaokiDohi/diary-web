@@ -220,6 +220,13 @@ const Home: NextPageWithLayout = memo(() => {
       setIsLoggedIn(true)
       setIsSubscribed(true)
     }
+    if (
+      state.user.loggedInUser &&
+      state.user.stripe_customer_id &&
+      state.user.subscriptions.length === 0
+    ) {
+      router.replace('/landing')
+    }
   }, [
     state.user.loggedInUser,
     state.user.stripe_customer_id,
