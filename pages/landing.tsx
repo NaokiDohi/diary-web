@@ -6,18 +6,46 @@ import PriceCard from '../components/Cards/PriceCard'
 import GuestLayout from '../layouts/GuestLayout'
 import axios from 'axios'
 import styles from '../styles/Home.module.css'
-import { Center, Heading, VStack, Box, HStack, Spacer } from '@chakra-ui/react'
+import {
+  Center,
+  Heading,
+  VStack,
+  Box,
+  HStack,
+  Spacer,
+  Spinner,
+} from '@chakra-ui/react'
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css'
 import type { NextPageWithLayout } from './_app'
 import type { Stripe } from 'stripe'
 import type { AuthContextType } from '../context/index'
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 
 type BillingInterval = 'year' | 'month'
 
+// After that, we need to change showing prices component to SSR.
+// export const getServerSideProps: GetServerSideProps<{
+//   data: Stripe.Price[]
+// }> = async () => {
+//   const { data } = await axios.get('/api/subscriptions/prices')
+//   console.log('Getting Prices', data)
+//   return { props: { data } }
+// }
+
+// type NextPageWithPropsAndLayout =
+
+// const Home: NextPageWithLayout &
+//   InferGetServerSidePropsType<typeof getServerSideProps> = ({
+//   data,
+// }: {
+//   data: Stripe.Price[]
+// })
+
 const Home: NextPageWithLayout = () => {
   const router = useRouter()
-  const [state, setState] = useContext<AuthContextType>(AuthContext)
-  const [prices, setPrices] = useState([])
+  const [state, setState, isLoading, setIsLoading] =
+    useContext<AuthContextType>(AuthContext)
+  const [prices, setPrices] = useState<Stripe.Price[]>([])
   const [userSubscriptions, setUserSubscriptions] = useState<string[]>([])
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>('month')
@@ -68,7 +96,7 @@ const Home: NextPageWithLayout = () => {
     ) {
       setIsLoggedIn(true)
       // console.log(`user subscription length: ${userSubscriptions.length}`)
-      router.push('/')
+      router.replace('/')
     } else {
       fetchPrices()
     }
