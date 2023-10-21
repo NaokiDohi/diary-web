@@ -10,7 +10,7 @@ import React, { useEffect } from 'react'
 const PaymentCancel = () => {
   useEffect(() => {
     setTimeout(() => {
-      router.push('/')
+      router.replace('/landing')
     }, 2000)
   }, [])
   return (
