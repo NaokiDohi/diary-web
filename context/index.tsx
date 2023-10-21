@@ -26,13 +26,15 @@ export type AuthStateType = {
 export type AuthContextType = [
   AuthStateType,
   Dispatch<SetStateAction<AuthStateType>>,
-  boolean
+  boolean,
+  Dispatch<SetStateAction<boolean>>
 ]
 
 const defaultValue: AuthContextType = [
   { user: { loggedInUser: null, stripe_customer_id: null, subscriptions: [] } },
   () => {},
   true,
+  () => {},
 ]
 const AuthContext = createContext<AuthContextType>(defaultValue)
 
@@ -84,7 +86,7 @@ const AuthProvider = ({ children }: Props) => {
   // console.log(`context idex is called:\n%o`, state)
 
   return (
-    <AuthContext.Provider value={[state, setState, isLoading]}>
+    <AuthContext.Provider value={[state, setState, isLoading, setIsLoading]}>
       {children}
     </AuthContext.Provider>
   )
