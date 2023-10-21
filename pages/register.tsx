@@ -11,6 +11,7 @@ import { addNewWithDocId } from '../assets/firebaseClientHelpers'
 import GuestLayout from '../layouts/GuestLayout'
 import type { NextPageWithLayout } from './_app'
 import type { AuthContextType } from '../context/index'
+import { setCookie } from 'nookies'
 
 const Register: NextPageWithLayout = () => {
   const [name, setName] = useState<string>('')
@@ -24,12 +25,7 @@ const Register: NextPageWithLayout = () => {
   const [state, setState] = useContext<AuthContextType>(AuthContext)
   const router = useRouter()
 
-  useEffect(() => {
-    // console.log(state.user.loggedInUser)
-    if (state.user.loggedInUser) router.replace('/')
-  }, [state.user.loggedInUser])
-
-  const handleRegistration = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRegistration = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
 
     const auth = getAuth()
@@ -51,26 +47,21 @@ const Register: NextPageWithLayout = () => {
           email: email,
         })
         console.log('Customer was created', customer)
-        const docRef = addNewWithDocId('users', user.user.uid, {
-          name: name,
-          email: email,
-          password: password,
-          stripe_customer_id: customer.data.id,
-          subscriptions: [],
+        const token = await user.user.getIdToken()
+        setCookie(undefined, 'token', token)
+        setCookie(undefined, 'stripe_customer_id', customer.data.id, {
+          path: '/',
         })
-        // console.log(user)
-        setState((oldState: AuthStateType) => ({
-          ...oldState,
-          user: {
-            ...oldState.user,
-            loggedInUser: user.user,
-            stripe_customer_id: customer.data.id,
-          },
-        }))
-        console.log(state)
-        ///
-        // After that, we need to fix error handling about stripe user
-        ///
+        router.replace('/landing', undefined, { shallow: true })
+        router.reload()
+
+        // const docRef = addNewWithDocId('users', user.user.uid, {
+        //   name: name,
+        //   email: email,
+        //   password: password,
+        //   stripe_customer_id: customer.data.id,
+        //   subscriptions: [],
+        // })
       })
       .catch((error) => {
         // console.log('error', error.code)
